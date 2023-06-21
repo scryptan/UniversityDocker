@@ -1,0 +1,31 @@
+﻿services:
+  universitydocker:
+    image: university_docker
+    build:
+      context: .
+      dockerfile: UniversityDocker/Dockerfile
+    environment:
+      DbConnectionString: Host=postgres;Port=5432;Database=my_db;Username=postgres;Password=my_very_strong_password
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - 80:80
+  
+  postgres:
+    container_name: postgres
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: my_very_strong_password
+      PGDATA: /data/postgres
+    volumes:
+      - ./postgres:/data/postgres
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 2s
+      timeout: 5s
+      retries: 5
